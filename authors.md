@@ -2,16 +2,16 @@
 
 ## Authors
 
-- **Quinten GOENS EUROCONTROL PRU**. Author, maintainer.
+- **EUROCONTROL Performance Review Unit (PRU)**. Author, maintainer.
 
 ## Citation
 
-EUROCONTROL PRU Q (2025). *pbwg.eurocontrol: PBWG Wrappers for
-EUROCONTROL Data*. R package version 0.0.1.
+(PRU) E (2025). *pbwg.eurocontrol: PBWG Wrappers for EUROCONTROL Data*.
+R package version 0.0.1.
 
     @Manual{,
       title = {pbwg.eurocontrol: PBWG Wrappers for EUROCONTROL Data},
-      author = {Quinten GOENS {EUROCONTROL PRU}},
+      author = {EUROCONTROL Performance Review Unit (PRU)},
       year = {2025},
       note = {R package version 0.0.1},
     }
