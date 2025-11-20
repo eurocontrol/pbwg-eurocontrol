@@ -3,7 +3,7 @@ Type: Package
 Title: PBWG Wrappers for EUROCONTROL Data
 Version: 0.0.1
 Authors@R:
-    person("Quinten GOENS", "EUROCONTROL PRU", email = "quinten.goens@eurocontrol.int", role = c("aut", "cre"))
+    person("EUROCONTROL Performance Review Unit", "(PRU)", email = "pru-support@eurocontrol.int", role = c("aut", "cre"))
 Description: Provides R-native wrappers around the EUROCONTROL data access
     helpers to provide inputs for PBWG reports. The package
     exposes high-level functions for NM area traffic, market segments, DAIO
