@@ -22,7 +22,7 @@ devtools::install_github("eurocontrol/pbwg-eurocontrol")
 - `pbwg_daio()` - Daily DAIO counts for a region.
 - `pbwg_traffic_summary()` / `pbwg_chn_summary()` - Composite daily tables used in PBWG outputs.
 - `pbwg_apdf_fetch_airport_raw()` / `pbwg_apdf_daily_airport_movements()` - APDF airport extracts and daily summaries.
-- `pbwg_otp_punctuality()` - CODA/CFMU punctuality extracts for selected airports/years.
+- `pbwg_otp_punctuality()` - Punctuality extracts for selected airports/years.
 
 ## Usage
 
