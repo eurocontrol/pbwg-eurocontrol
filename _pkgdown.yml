@@ -4,9 +4,9 @@ template:
   bootstrap: 5
 
 authors:
-  Quinten GOENS:
+  Performance Review Unit (PRU):
     href: https://www.eurocontrol.int
-    email: quinten.goens@eurocontrol.int
+    email: pru-support@eurocontrol.int
   EUROCONTROL:
     href: https://www.eurocontrol.int
     html: "<img src='https://ansperformance.eu/nvctr/reference/figures/euctrl-logo-wide.svg' width=112 alt='EUROCONTROL logo'>"
