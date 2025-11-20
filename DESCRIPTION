@@ -1,0 +1,37 @@
+Package: pbwg.eurocontrol
+Type: Package
+Title: PBWG Wrappers for EUROCONTROL Data
+Version: 0.0.1
+Authors@R:
+    person("Quinten GOENS", "EUROCONTROL PRU", email = "quinten.goens@eurocontrol.int", role = c("aut", "cre"))
+Description: Provides R-native wrappers around the EUROCONTROL data access
+    helpers to provide inputs for PBWG reports. The package
+    exposes high-level functions for NM area traffic, market segments, DAIO
+    breakdowns, APDF airport operator dataflows, and compound CHN-EUR traffic
+    summaries, all powered by the eurocontrol package and ROracle.
+License: GPL-3
+Encoding: UTF-8
+LazyData: false
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends:
+    R (>= 4.2),
+    eurocontrol
+Imports:
+    DBI,
+    cli,
+    dplyr,
+    dbplyr,
+    glue,
+    lubridate,
+    magrittr,
+    purrr,
+    rlang,
+    stringr,
+    tibble,
+    tidyr,
+    tidyselect,
+    withr
+Suggests:
+    arrow,
+    plotly

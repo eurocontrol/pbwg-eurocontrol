@@ -1,0 +1,36 @@
+url: https://eurocontrol.github.io/pbwg-eurocontrol/
+
+template:
+  bootstrap: 5
+
+authors:
+  Quinten GOENS:
+    href: https://www.eurocontrol.int
+    email: quinten.goens@eurocontrol.int
+  EUROCONTROL:
+    href: https://www.eurocontrol.int
+    html: "<img src='https://ansperformance.eu/nvctr/reference/figures/euctrl-logo-wide.svg' width=112 alt='EUROCONTROL logo'>"
+
+reference:
+- title: Traffic summaries
+  desc: >
+    Daily NM area, DAIO, and CHN-EUR composite outputs used in PBWG reporting.
+  contents:
+  - pbwg_nm_area_weight_segment
+  - pbwg_nm_area_market_segment
+  - pbwg_daio
+  - pbwg_traffic_summary
+  - pbwg_chn_summary
+
+- title: APDF airport data
+  desc: >
+    Airport-level APDF extracts and summaries.
+  contents:
+  - pbwg_apdf_fetch_airport_raw
+  - pbwg_apdf_daily_airport_movements
+
+- title: Punctuality
+  desc: >
+    CODA/CFMU on-time performance pulls for the requested airports/years.
+  contents:
+  - pbwg_otp_punctuality
