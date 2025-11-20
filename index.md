@@ -1,4 +1,4 @@
-# pbwg-eurocontrol
+# PBWG EUROCONTROL Workbench
 
 High-level R helpers for PBWG workflows at EUROCONTROL. The package
 wraps `eurocontrol` primitives and purpose-built SQL to pull NM area
@@ -34,7 +34,7 @@ devtools::install_github("eurocontrol/pbwg-eurocontrol")
   [`pbwg_apdf_daily_airport_movements()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_apdf_daily_airport_movements.md) -
   APDF airport extracts and daily summaries.
 - [`pbwg_otp_punctuality()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_otp_punctuality.md) -
-  CODA/CFMU punctuality extracts for selected airports/years.
+  Punctuality extracts for selected airports/years.
 
 ## Usage
 
