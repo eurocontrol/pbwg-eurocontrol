@@ -47,7 +47,57 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="pbwg-eurocontrol">pbwg-eurocontrol<a class="anchor" aria-label="anchor" href="#pbwg-eurocontrol"></a>
 </h1></div>
-<p>A package to fetch datasets for PBWG.</p>
+<p>High-level R helpers for PBWG workflows at EUROCONTROL. The package wraps <code>eurocontrol</code> primitives and purpose-built SQL to pull NM area traffic, DAIO, APDF airport data, punctuality extracts, and combined CHN-EUR summaries.</p>
+<blockquote>
+<p>Note: The package expects connectivity to PRU Oracle schemas (PRU_DEV/PRU_ATMAP) and the <code>ROracle</code> client; these are not available on CRAN.</p>
+</blockquote>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"eurocontrol/eurocontrol"</span><span class="op">)</span>   <span class="co"># dependency</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"eurocontrol/pbwg-eurocontrol"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="key-functions">Key functions<a class="anchor" aria-label="anchor" href="#key-functions"></a>
+</h2>
+<ul>
+<li>
+<code><a href="reference/pbwg_nm_area_weight_segment.html">pbwg_nm_area_weight_segment()</a></code> - NM area traffic split by wake turbulence and aircraft category.</li>
+<li>
+<code><a href="reference/pbwg_nm_area_market_segment.html">pbwg_nm_area_market_segment()</a></code> - NM area traffic by market segment.</li>
+<li>
+<code><a href="reference/pbwg_daio.html">pbwg_daio()</a></code> - Daily DAIO counts for a region.</li>
+<li>
+<code><a href="reference/pbwg_traffic_summary.html">pbwg_traffic_summary()</a></code> / <code><a href="reference/pbwg_chn_summary.html">pbwg_chn_summary()</a></code> - Composite daily tables used in PBWG outputs.</li>
+<li>
+<code><a href="reference/pbwg_apdf_fetch_airport_raw.html">pbwg_apdf_fetch_airport_raw()</a></code> / <code><a href="reference/pbwg_apdf_daily_airport_movements.html">pbwg_apdf_daily_airport_movements()</a></code> - APDF airport extracts and daily summaries.</li>
+<li>
+<code><a href="reference/pbwg_otp_punctuality.html">pbwg_otp_punctuality()</a></code> - CODA/CFMU punctuality extracts for selected airports/years.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
+</h2>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">pbwg.eurocontrol</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># NM area by wake turbulence category</span></span>
+<span><span class="va">wtc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/pbwg_nm_area_weight_segment.html">pbwg_nm_area_weight_segment</a></span><span class="op">(</span>wef <span class="op">=</span> <span class="st">"2024-01-01"</span>, til <span class="op">=</span> <span class="st">"2024-01-31"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># DAIO daily counts and composite PBWG summary</span></span>
+<span><span class="va">daio</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/pbwg_daio.html">pbwg_daio</a></span><span class="op">(</span><span class="st">"2024-01-01"</span>, <span class="st">"2024-01-31"</span>, region <span class="op">=</span> <span class="st">"ECAC"</span><span class="op">)</span></span>
+<span><span class="va">summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/pbwg_traffic_summary.html">pbwg_traffic_summary</a></span><span class="op">(</span><span class="st">"2024-01-01"</span>, <span class="st">"2024-01-31"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># APDF airport movements for a set of ICAO codes</span></span>
+<span><span class="va">apdf</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/pbwg_apdf_daily_airport_movements.html">pbwg_apdf_daily_airport_movements</a></span><span class="op">(</span></span>
+<span>  airports <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"EBBR"</span>, <span class="st">"EIDW"</span><span class="op">)</span>,</span>
+<span>  wef <span class="op">=</span> <span class="st">"2024-01-01"</span>,</span>
+<span>  til <span class="op">=</span> <span class="st">"2024-01-07"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Each function accepts an optional <code>conn</code> (DBI connection). When omitted, a fresh Oracle connection is created via <code><a href="https://eurocontrol.github.io/eurocontrol/reference/db_connection.html" class="external-link">eurocontrol::db_connection()</a></code>; ensure your environment provides the required credentials and Oracle client.</p>
+</div>
 </div>
   </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>

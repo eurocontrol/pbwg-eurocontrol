@@ -1,3 +1,63 @@
 # pbwg-eurocontrol
 
-A package to fetch datasets for PBWG.
+High-level R helpers for PBWG workflows at EUROCONTROL. The package
+wraps `eurocontrol` primitives and purpose-built SQL to pull NM area
+traffic, DAIO, APDF airport data, punctuality extracts, and combined
+CHN-EUR summaries.
+
+> Note: The package expects connectivity to PRU Oracle schemas
+> (PRU_DEV/PRU_ATMAP) and the `ROracle` client; these are not available
+> on CRAN.
+
+## Installation
+
+``` r
+# install.packages("devtools")
+devtools::install_github("eurocontrol/eurocontrol")   # dependency
+devtools::install_github("eurocontrol/pbwg-eurocontrol")
+```
+
+## Key functions
+
+- [`pbwg_nm_area_weight_segment()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_nm_area_weight_segment.md) -
+  NM area traffic split by wake turbulence and aircraft category.
+- [`pbwg_nm_area_market_segment()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_nm_area_market_segment.md) -
+  NM area traffic by market segment.
+- [`pbwg_daio()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_daio.md) -
+  Daily DAIO counts for a region.
+- [`pbwg_traffic_summary()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_traffic_summary.md)
+  /
+  [`pbwg_chn_summary()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_chn_summary.md) -
+  Composite daily tables used in PBWG outputs.
+- [`pbwg_apdf_fetch_airport_raw()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_apdf_fetch_airport_raw.md)
+  /
+  [`pbwg_apdf_daily_airport_movements()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_apdf_daily_airport_movements.md) -
+  APDF airport extracts and daily summaries.
+- [`pbwg_otp_punctuality()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_otp_punctuality.md) -
+  CODA/CFMU punctuality extracts for selected airports/years.
+
+## Usage
+
+``` r
+library(pbwg.eurocontrol)
+
+# NM area by wake turbulence category
+wtc <- pbwg_nm_area_weight_segment(wef = "2024-01-01", til = "2024-01-31")
+
+# DAIO daily counts and composite PBWG summary
+daio <- pbwg_daio("2024-01-01", "2024-01-31", region = "ECAC")
+summary <- pbwg_traffic_summary("2024-01-01", "2024-01-31")
+
+# APDF airport movements for a set of ICAO codes
+apdf <- pbwg_apdf_daily_airport_movements(
+  airports = c("EBBR", "EIDW"),
+  wef = "2024-01-01",
+  til = "2024-01-07"
+)
+```
+
+Each function accepts an optional `conn` (DBI connection). When omitted,
+a fresh Oracle connection is created via
+[`eurocontrol::db_connection()`](https://eurocontrol.github.io/eurocontrol/reference/db_connection.html);
+ensure your environment provides the required credentials and Oracle
+client.
