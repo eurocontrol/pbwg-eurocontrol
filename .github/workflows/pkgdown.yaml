@@ -32,7 +32,11 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown, local::., ROracle=?ignore
+          extra-packages: |
+            any::pkgdown
+            github::eurocontrol/eurocontrol
+            local::.
+            ROracle=?ignore
           needs: website
 
       - name: Build site
