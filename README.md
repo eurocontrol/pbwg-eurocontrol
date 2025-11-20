@@ -1,4 +1,4 @@
-# pbwg-eurocontrol
+# PBWG EUROCONTROL Workbench
 
 High-level R helpers for PBWG workflows at EUROCONTROL. The package wraps
 `eurocontrol` primitives and purpose-built SQL to pull NM area traffic, DAIO,
