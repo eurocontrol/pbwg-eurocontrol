@@ -83,15 +83,37 @@ fetch_chn_eur_datasets <- function(
       function(icao) {
         out_path <- file.path(
           out_dir,
-          glue::glue("{icao}_{start_chr}_{end_chr}_APT_TFC.parquet")
+          glue::glue("{icao}_{start_chr}_{end_chr}_APDF.parquet")
         )
-        if (file.exists(out_path)) {
+        raw_path <- file.path(
+          out_dir,
+          glue::glue("{icao}_{start_chr}_{end_chr}_APDF_RAW.parquet")
+        )
+        need_summary <- !file.exists(out_path)
+        need_raw <- !file.exists(raw_path)
+
+        if (!need_summary && !need_raw) {
           cli::cli_inform("Skipping APDF for {icao} (exists).")
-        } else {
-          cli::cli_inform("Fetching APDF for {icao}...")
-          apdf <- pbwg_apdf_daily_airport_movements(icao, wef, til)
-          arrow::write_parquet(apdf, out_path)
-          cli::cli_inform("Wrote APDF for {icao} to {out_path}.")
+          return(invisible())
+        }
+
+        cli::cli_inform("Fetching APDF for {icao}...")
+        apdf <- pbwg_apdf_daily_airport_movements(
+          icao,
+          wef,
+          til,
+          include_raw = need_raw
+        )
+
+        if (need_summary) {
+          daily <- if (need_raw) apdf$data else apdf
+          arrow::write_parquet(daily, out_path)
+          cli::cli_inform("Wrote APDF summary for {icao} to {out_path}.")
+        }
+
+        if (need_raw) {
+          arrow::write_parquet(apdf$raw, raw_path)
+          cli::cli_inform("Wrote APDF raw for {icao} to {raw_path}.")
         }
       }
     )
