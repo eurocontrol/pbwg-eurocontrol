@@ -78,9 +78,8 @@ fetch_chn_eur_datasets <- function(
 
   if (include_airport) {
     cli::cli_inform("Fetching APDF airport traffic counts...")
-    apdf <- pbwg_apdf_daily_airport_movements(airports, wef, til)
     purrr::walk(
-      unique(apdf$ICAO),
+      unique(toupper(airports)),
       function(icao) {
         out_path <- file.path(
           out_dir,
@@ -89,9 +88,10 @@ fetch_chn_eur_datasets <- function(
         if (file.exists(out_path)) {
           cli::cli_inform("Skipping APDF for {icao} (exists).")
         } else {
-          chunk <- apdf |>
-            dplyr::filter(.data$ICAO == !!icao)
-          arrow::write_parquet(chunk, out_path)
+          cli::cli_inform("Fetching APDF for {icao}...")
+          apdf <- pbwg_apdf_daily_airport_movements(icao, wef, til)
+          arrow::write_parquet(apdf, out_path)
+          cli::cli_inform("Wrote APDF for {icao} to {out_path}.")
         }
       }
     )
