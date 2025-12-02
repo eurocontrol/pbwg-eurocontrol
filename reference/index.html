@@ -30,9 +30,9 @@
     </div>
 
     <div class="section level2">
-      <h2 id="traffic-summaries">Traffic summaries<a class="anchor" aria-label="anchor" href="#traffic-summaries"></a></h2>
+      <h2 id="network-wide-traffic-counts">Network-wide traffic counts<a class="anchor" aria-label="anchor" href="#network-wide-traffic-counts"></a></h2>
 
-      <div class="section-desc"><p>Daily NM area, DAIO, and CHN-EUR composite outputs used in PBWG reporting.</p></div>
+      <div class="section-desc"><p>NM area counts by wake turbulence and market segment, plus raw DAIO daily totals.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -41,14 +41,14 @@
 
       <dl><dt>
 
-          <code><a href="pbwg_nm_area_weight_segment.html">pbwg_nm_area_weight_segment()</a></code>
+          <code><a href="pbwg_weight_segment_tfc_counts.html">pbwg_weight_segment_tfc_counts()</a></code>
 
         </dt>
         <dd>NM area traffic by wake turbulence category</dd>
 
         <dt>
 
-          <code><a href="pbwg_nm_area_market_segment.html">pbwg_nm_area_market_segment()</a></code>
+          <code><a href="pbwg_market_segment_tfc_counts.html">pbwg_market_segment_tfc_counts()</a></code>
 
         </dt>
         <dd>NM area traffic by market segment</dd>
@@ -59,8 +59,17 @@
 
         </dt>
         <dd>Daily DAIO traffic counts</dd>
+      </dl></div><div class="section level2">
+      <h2 id="regional-summaries-eur-chn-eur-">Regional summaries (EUR / CHN-EUR)<a class="anchor" aria-label="anchor" href="#regional-summaries-eur-chn-eur-"></a></h2>
 
-        <dt>
+      <div class="section-desc"><p>Daily roll-ups that merge DAIO, H/M/L, and market segments, with diagnostics.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="pbwg_traffic_summary.html">pbwg_traffic_summary()</a></code>
 
@@ -74,9 +83,9 @@
         </dt>
         <dd>CHN-EUR collaboration traffic summary</dd>
       </dl></div><div class="section level2">
-      <h2 id="apdf-airport-data">APDF airport data<a class="anchor" aria-label="anchor" href="#apdf-airport-data"></a></h2>
+      <h2 id="airport-level-apdf">Airport-level APDF<a class="anchor" aria-label="anchor" href="#airport-level-apdf"></a></h2>
 
-      <div class="section-desc"><p>Airport-level APDF extracts and summaries.</p></div>
+      <div class="section-desc"><p>APDF pulls for one or more airports, returning raw movement rows or daily summaries with H/M/L and domestic flags.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -97,9 +106,9 @@
         </dt>
         <dd>Daily APDF airport summary</dd>
       </dl></div><div class="section level2">
-      <h2 id="punctuality">Punctuality<a class="anchor" aria-label="anchor" href="#punctuality"></a></h2>
+      <h2 id="punctuality-from-coda-aodf-">Punctuality (from CODA AODF)<a class="anchor" aria-label="anchor" href="#punctuality-from-coda-aodf-"></a></h2>
 
-      <div class="section-desc"><p>CODA/CFMU on-time performance pulls for the requested airports/years.</p></div>
+      <div class="section-desc"><p>On-time performance extracts bucketed by &lt;=15 min vs &gt;15 min delays for selected airports/years.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -112,6 +121,22 @@
 
         </dt>
         <dd>OTP punctuality extract</dd>
+      </dl></div><div class="section level2">
+      <h2 id="dataset-exporters">Dataset exporters<a class="anchor" aria-label="anchor" href="#dataset-exporters"></a></h2>
+
+      <div class="section-desc"><p>Convenience wrapper to pull and persist CHN-EUR datasets in one call.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="fetch_chn_eur_datasets.html">fetch_chn_eur_datasets()</a></code>
+
+        </dt>
+        <dd>Fetch CHN-EUR datasets to Parquet</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

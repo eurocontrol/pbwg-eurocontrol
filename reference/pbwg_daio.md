@@ -1,8 +1,8 @@
 # Daily DAIO traffic counts
 
-Executes the DAIO query that powers the PBWG tool. When
-`include_source_id` is `TRUE` the output matches the `query_daio_CHN()`
-variant from the Python implementation.
+Runs the DAIO aggregation used by PBWG, grouping the FIR-time entries by
+DAIO flag and region. Optional inclusion of `SK_SOURCE_ID` reproduces
+the CHN-specific variant of the legacy Python query.
 
 ## Usage
 
@@ -47,4 +47,18 @@ pbwg_daio(wef, til, region, include_source_id = FALSE, conn = NULL)
 
 A
 [`tibble::tibble()`](https://tibble.tidyverse.org/reference/tibble.html)
-with `"sql"` attribute.
+with `"sql"` attribute and columns:
+
+- `YEAR`Numeric year derived from `ENTRY_TIME`.
+
+- `MONTH`Numeric month derived from `ENTRY_TIME`.
+
+- `ENTRY_DATE`Date (UTC) of the FIR entry.
+
+- `TZ_NAME`Region name from `DIMCL_TZ`.
+
+- `DAIO`DAIO flag (`D`, `A`, `I`, `O`).
+
+- `SK_SOURCE_ID`Optional source ID when `include_source_id = TRUE`.
+
+- `FLIGHT`Total flights for the grouping.

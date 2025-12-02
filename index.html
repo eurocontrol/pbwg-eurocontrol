@@ -64,9 +64,9 @@
 </h2>
 <ul>
 <li>
-<code><a href="reference/pbwg_nm_area_weight_segment.html">pbwg_nm_area_weight_segment()</a></code> - NM area traffic split by wake turbulence and aircraft category.</li>
+<code><a href="reference/pbwg_weight_segment_tfc_counts.html">pbwg_weight_segment_tfc_counts()</a></code> - NM area traffic split by wake turbulence and aircraft category.</li>
 <li>
-<code><a href="reference/pbwg_nm_area_market_segment.html">pbwg_nm_area_market_segment()</a></code> - NM area traffic by market segment.</li>
+<code><a href="reference/pbwg_market_segment_tfc_counts.html">pbwg_market_segment_tfc_counts()</a></code> - NM area traffic by market segment.</li>
 <li>
 <code><a href="reference/pbwg_daio.html">pbwg_daio()</a></code> - Daily DAIO counts for a region.</li>
 <li>
@@ -84,7 +84,7 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">pbwg.eurocontrol</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># NM area by wake turbulence category</span></span>
-<span><span class="va">wtc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/pbwg_nm_area_weight_segment.html">pbwg_nm_area_weight_segment</a></span><span class="op">(</span>wef <span class="op">=</span> <span class="st">"2024-01-01"</span>, til <span class="op">=</span> <span class="st">"2024-01-31"</span><span class="op">)</span></span>
+<span><span class="va">wtc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/pbwg_weight_segment_tfc_counts.html">pbwg_weight_segment_tfc_counts</a></span><span class="op">(</span>wef <span class="op">=</span> <span class="st">"2024-01-01"</span>, til <span class="op">=</span> <span class="st">"2024-01-31"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># DAIO daily counts and composite PBWG summary</span></span>
 <span><span class="va">daio</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/pbwg_daio.html">pbwg_daio</a></span><span class="op">(</span><span class="st">"2024-01-01"</span>, <span class="st">"2024-01-31"</span>, region <span class="op">=</span> <span class="st">"ECAC"</span><span class="op">)</span></span>

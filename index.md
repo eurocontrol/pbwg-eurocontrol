@@ -19,9 +19,9 @@ devtools::install_github("eurocontrol/pbwg-eurocontrol")
 
 ## Key functions
 
-- [`pbwg_nm_area_weight_segment()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_nm_area_weight_segment.md) -
+- [`pbwg_weight_segment_tfc_counts()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_weight_segment_tfc_counts.md) -
   NM area traffic split by wake turbulence and aircraft category.
-- [`pbwg_nm_area_market_segment()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_nm_area_market_segment.md) -
+- [`pbwg_market_segment_tfc_counts()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_market_segment_tfc_counts.md) -
   NM area traffic by market segment.
 - [`pbwg_daio()`](https://eurocontrol.github.io/pbwg-eurocontrol/reference/pbwg_daio.md) -
   Daily DAIO counts for a region.
@@ -42,7 +42,7 @@ devtools::install_github("eurocontrol/pbwg-eurocontrol")
 library(pbwg.eurocontrol)
 
 # NM area by wake turbulence category
-wtc <- pbwg_nm_area_weight_segment(wef = "2024-01-01", til = "2024-01-31")
+wtc <- pbwg_weight_segment_tfc_counts(wef = "2024-01-01", til = "2024-01-31")
 
 # DAIO daily counts and composite PBWG summary
 daio <- pbwg_daio("2024-01-01", "2024-01-31", region = "ECAC")

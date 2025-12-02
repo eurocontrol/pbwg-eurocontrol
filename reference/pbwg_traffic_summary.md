@@ -1,12 +1,18 @@
 # PBWG regional traffic summary (EUR view)
 
-Recreates the composite PBWG workflow that merges DAIO, H/M/L, and
-market segment statistics into a single daily table.
+PBWG workflow that merges DAIO, H/M/L, and market segment statistics
+into a single daily table.
 
 ## Usage
 
 ``` r
-pbwg_traffic_summary(wef, til, region = "ECAC", conn = NULL)
+pbwg_traffic_summary(
+  wef,
+  til,
+  region = "ECAC",
+  schema = c("pbwg", "chn"),
+  conn = NULL
+)
 ```
 
 ## Arguments
@@ -27,6 +33,12 @@ pbwg_traffic_summary(wef, til, region = "ECAC", conn = NULL)
 
   DAIO region code. Defaults to `"ECAC"`.
 
+- schema:
+
+  Output shape: `"pbwg"` (default, full EUR table with ARRS/DEPS,
+  domestic, overflights, and PAX) or `"chn"` (lean CHN-EUR dashboard
+  schema).
+
 - conn:
 
   Optional Oracle
@@ -40,3 +52,27 @@ pbwg_traffic_summary(wef, til, region = "ECAC", conn = NULL)
 
 A list with the processed `data`, an optional `plot` (if `plotly` is
 installed), diagnostic `details`, and the `raw` component tables.
+
+- data:
+
+  Tibble of daily metrics. For `schema = "pbwg"` columns are `REG`,
+  `DATE`, `FLIGHTS`, `ARRS`, `DEPS`, `HEAVY`, `MED`, `LIGHT`,
+  `ARRS_DOM`, `DEPS_DOM`, `OVR_FLTS`, `PAX`, `CARGO`, `OTHER`, `D`, `A`,
+  `I`, `O`, `SCHED`, `CHARTER`. For `schema = "chn"` columns are `REG`,
+  `DATE`, `FLIGHTS`, `D`, `A`, `I`, `O`, `HEAVY`, `MED`, `LIGHT`,
+  `SCHED`, `CHARTER`, `CARGO`, `OTHER`.
+
+- plot:
+
+  Optional `plotly` object showing DAIO breakdown if `plotly` is
+  installed, otherwise `NULL`.
+
+- diagnostics:
+
+  List with `deltas` (sanity-check calculations) and `messages`
+  (warnings about imbalances).
+
+- raw:
+
+  List of component tables: `weight_segment`, `market_segment`, and
+  `daio`.

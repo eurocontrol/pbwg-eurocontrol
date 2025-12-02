@@ -40,11 +40,35 @@ purpose-built SQL for the PBWG ECTL workflows.</p>
 
 
     <div class="section level2">
+    <h2 id="user-facing-functions">User-facing functions<a class="anchor" aria-label="anchor" href="#user-facing-functions"></a></h2>
+
+
+<ul><li><p>pbwg_traffic_summary()Regional EUR traffic roll-up combining DAIO,
+wake turbulence, and market segment counts with diagnostics.</p></li>
+<li><p>pbwg_chn_summary()Lean variant of the traffic summary aligned with
+the CHN-EUR dashboard schema.</p></li>
+<li><p>pbwg_daio()Daily DAIO breakdowns by region, with optional
+<code>SK_SOURCE_ID</code>.</p></li>
+<li><p>pbwg_weight_segment_tfc_counts()Network Manager area traffic by wake
+turbulence category (NM flights fact + aircraft categories).</p></li>
+<li><p>pbwg_market_segment_tfc_counts()Network Manager area traffic by
+market segment (NM flights fact + flight type rule dimension).</p></li>
+<li><p>pbwg_apdf_fetch_airport_raw()Raw APDF rows for a single airport and
+date range, retaining operational fields used by PBWG tools.</p></li>
+<li><p>pbwg_apdf_daily_airport_movements()Daily APDF airport movements with
+arrivals/departures, H/M/L split, and domestic flags.</p></li>
+<li><p>pbwg_otp_punctuality()CODA/CFMU punctuality summary for selected
+airports and years.</p></li>
+<li><p>fetch_chn_eur_datasets()One-call exporter that pulls NM counts,
+regional roll-ups, APDF airport summaries, and OTP buckets to Parquet.</p></li>
+</ul></div>
+    <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p><strong>Maintainer</strong>: Quinten GOENS EUROCONTROL PRU <a href="mailto:quinten.goens@eurocontrol.int">quinten.goens@eurocontrol.int</a></p>
+    <p><strong>Maintainer</strong>: EUROCONTROL Performance Review Unit (PRU) <a href="mailto:pru-support@eurocontrol.int">pru-support@eurocontrol.int</a></p>
     </div>
 
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

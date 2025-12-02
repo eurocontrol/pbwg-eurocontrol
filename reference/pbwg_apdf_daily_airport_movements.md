@@ -56,14 +56,20 @@ pbwg_apdf_daily_airport_movements(
 
 Tibble with one row per airport per day containing:
 
-- `ICAO`: airport code.
+- `ICAO`Airport code.
 
-- `DATE`: movement date (UTC).
+- `DATE`Movement date (UTC).
 
-- `ARRS` / `DEPS`: arrival and departure counts.
+- `ARRS`Arrival count.
 
-- `HEAVY` / `MED` / `LIGHT`: counts by wake turbulence class
-  (`AC_CLASS`-derived).
+- `DEPS`Departure count.
 
-- `ARRS_DOM` / `DEPS_DOM`: domestic arrivals/departures matched on ICAO
-  prefixes.
+- `HEAVY`Heavy wake turbulence movements.
+
+- `MED`Medium wake turbulence movements.
+
+- `LIGHT`Light wake turbulence movements.
+
+- `ARRS_DOM`Domestic arrivals matched on ICAO prefixes.
+
+- `DEPS_DOM`Domestic departures matched on ICAO prefixes.

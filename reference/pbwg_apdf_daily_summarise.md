@@ -31,13 +31,20 @@ pbwg_apdf_daily_summarise(raw_tbl, airport, domestic_prefixes)
 
 Tibble with one row per day for the provided airport, containing:
 
-- `ICAO`: airport code.
+- `ICAO`Airport code.
 
-- `DATE`: movement date (UTC).
+- `DATE`Movement date (UTC).
 
-- `ARRS` / `DEPS`: arrival and departure counts.
+- `ARRS`Arrival count.
 
-- `HEAVY` / `MED` / `LIGHT`: counts by wake turbulence class.
+- `DEPS`Departure count.
 
-- `ARRS_DOM` / `DEPS_DOM`: domestic arrivals/departures based on
-  prefixes.
+- `HEAVY`Heavy wake turbulence movements.
+
+- `MED`Medium wake turbulence movements.
+
+- `LIGHT`Light wake turbulence movements.
+
+- `ARRS_DOM`Domestic arrivals based on prefixes.
+
+- `DEPS_DOM`Domestic departures based on prefixes.
