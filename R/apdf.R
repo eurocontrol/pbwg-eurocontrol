@@ -88,15 +88,19 @@ pbwg_apdf_fetch_airport_raw <- function(
 #' movements per airport, coerces registrations/types to the PBWG shape, and
 #' aggregates daily arrivals/departures with a heavy/medium/light split. Date
 #' ranges spanning multiple years are handled in yearly chunks to keep queries
-#' manageable.
+#' manageable. Optionally returns the raw APDF rows alongside the daily
+#' aggregates.
 #'
 #' @param airports Character vector of ICAO airport codes.
 #' @inheritParams pbwg_apdf_fetch_airport_raw
+#' @param include_raw Logical; if `TRUE`, also returns the underlying APDF rows
+#'   combined across airports/intervals.
 #' @param domestic_prefixes Character prefixes used to flag domestic traffic via
 #'   [pbwg_apdf_is_domestic()]. Defaults to the ECTL set defined in
 #'   [pbwg_apdf_domestic_prefixes_default()].
 #'
-#' @return Tibble with one row per airport per day containing:
+#' @return If `include_raw = FALSE` (default), a tibble with one row per airport
+#'   per day containing:
 #'   \itemize{
 #'     \item{\code{ICAO}}{Airport code.}
 #'     \item{\code{DATE}}{Movement date (UTC).}
@@ -108,12 +112,19 @@ pbwg_apdf_fetch_airport_raw <- function(
 #'     \item{\code{ARRS_DOM}}{Domestic arrivals matched on ICAO prefixes.}
 #'     \item{\code{DEPS_DOM}}{Domestic departures matched on ICAO prefixes.}
 #'   }
+#'   If `include_raw = TRUE`, a list with:
+#'   \describe{
+#'     \item{\code{data}}{Daily summary tibble described above.}
+#'     \item{\code{raw}}{Raw APDF rows with a `SRC_AIRPORT` column tagging the
+#'       queried airport for each batch.}
+#'   }
 #' @export
 pbwg_apdf_daily_airport_movements <- function(
     airports,
     wef,
     til,
     conn = NULL,
+    include_raw = FALSE,
     domestic_prefixes = pbwg_apdf_domestic_prefixes_default()) {
   if (length(airports) == 0) {
     cli::cli_abort("{.arg airports} must contain at least one ICAO code.")
@@ -129,12 +140,35 @@ pbwg_apdf_daily_airport_movements <- function(
     }
   }, add = TRUE)
 
-  purrr::map_dfr(intervals, function(span) {
-    purrr::map_dfr(airports, function(apt) {
+  summaries <- list()
+  raw_tables <- list()
+
+  for (span in intervals) {
+    for (apt in airports) {
       raw <- pbwg_apdf_fetch_airport_raw(apt, span$wef, span$til, conn = con)
-      pbwg_apdf_daily_summarise(raw, apt, domestic_prefixes)
-    })
-  })
+      summaries[[length(summaries) + 1]] <- pbwg_apdf_daily_summarise(
+        raw,
+        apt,
+        domestic_prefixes
+      )
+      if (include_raw) {
+        raw_augmented <- raw
+        raw_augmented$SRC_AIRPORT <- apt
+        raw_tables[[length(raw_tables) + 1]] <- raw_augmented
+      }
+    }
+  }
+
+  daily <- dplyr::bind_rows(summaries)
+
+  if (!include_raw) {
+    return(daily)
+  }
+
+  list(
+    data = daily,
+    raw = dplyr::bind_rows(raw_tables)
+  )
 }
 
 #' Columns used for APDF extracts
