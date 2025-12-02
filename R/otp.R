@@ -147,7 +147,7 @@ pbwg_build_otp_query <- function(con, year, airports) {
     ) |>
     dplyr::summarise(
       N_CODA = dplyr::n(),
-      N_CFMU = dplyr::sum(dplyr::if_else(is.na(.data$ID_F), 0L, 1L)),
+      N_CFMU = sum(dplyr::if_else(is.na(.data$ID_F), 0L, 1L)),
       .groups = "drop"
     ) |>
     dplyr::mutate(
