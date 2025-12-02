@@ -18,6 +18,7 @@ fetch_chn_eur_datasets(
   include_market = TRUE,
   include_regional = TRUE,
   include_airport = TRUE,
+  include_raw_apdf = TRUE,
   include_otp = TRUE,
   out_dir = "data/eur"
 )
@@ -58,6 +59,10 @@ fetch_chn_eur_datasets(
 - include_airport:
 
   Logical; fetch APDF airport traffic counts.
+
+- include_raw_apdf:
+
+  Logical; also export raw APDF rows when available.
 
 - include_otp:
 
