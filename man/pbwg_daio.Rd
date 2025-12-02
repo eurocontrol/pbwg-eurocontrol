@@ -24,10 +24,19 @@ connection to \code{PRUDEV} is created via \code{\link[eurocontrol:db_connection
 access to \code{SWH_FCT.V_FAC_FLIGHT_MS} and \code{PRUDEV.V_PRU_AIRCRAFT_CATEGORY}.}
 }
 \value{
-A \code{\link[tibble:tibble]{tibble::tibble()}} with \code{"sql"} attribute.
+A \code{\link[tibble:tibble]{tibble::tibble()}} with \code{"sql"} attribute and columns:
+\itemize{
+\item{\code{YEAR}}{Numeric year derived from \code{ENTRY_TIME}.}
+\item{\code{MONTH}}{Numeric month derived from \code{ENTRY_TIME}.}
+\item{\code{ENTRY_DATE}}{Date (UTC) of the FIR entry.}
+\item{\code{TZ_NAME}}{Region name from \code{DIMCL_TZ}.}
+\item{\code{DAIO}}{DAIO flag (\code{D}, \code{A}, \code{I}, \code{O}).}
+\item{\code{SK_SOURCE_ID}}{Optional source ID when \code{include_source_id = TRUE}.}
+\item{\code{FLIGHT}}{Total flights for the grouping.}
+}
 }
 \description{
-Executes the DAIO query that powers the PBWG tool. When \code{include_source_id}
-is \code{TRUE} the output matches the \code{query_daio_CHN()} variant from the Python
-implementation.
+Runs the DAIO aggregation used by PBWG, grouping the FIR-time entries by
+DAIO flag and region. Optional inclusion of \code{SK_SOURCE_ID} reproduces the
+CHN-specific variant of the legacy Python query.
 }

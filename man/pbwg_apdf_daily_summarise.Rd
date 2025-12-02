@@ -16,11 +16,15 @@ pbwg_apdf_daily_summarise(raw_tbl, airport, domestic_prefixes)
 \value{
 Tibble with one row per day for the provided airport, containing:
 \itemize{
-\item \code{ICAO}: airport code.
-\item \code{DATE}: movement date (UTC).
-\item \code{ARRS} / \code{DEPS}: arrival and departure counts.
-\item \code{HEAVY} / \code{MED} / \code{LIGHT}: counts by wake turbulence class.
-\item \code{ARRS_DOM} / \code{DEPS_DOM}: domestic arrivals/departures based on prefixes.
+\item{\code{ICAO}}{Airport code.}
+\item{\code{DATE}}{Movement date (UTC).}
+\item{\code{ARRS}}{Arrival count.}
+\item{\code{DEPS}}{Departure count.}
+\item{\code{HEAVY}}{Heavy wake turbulence movements.}
+\item{\code{MED}}{Medium wake turbulence movements.}
+\item{\code{LIGHT}}{Light wake turbulence movements.}
+\item{\code{ARRS_DOM}}{Domestic arrivals based on prefixes.}
+\item{\code{DEPS_DOM}}{Domestic departures based on prefixes.}
 }
 }
 \description{

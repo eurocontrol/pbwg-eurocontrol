@@ -16,11 +16,26 @@ TOP34 flag as well as the explicit airport columns in the result.}
 \code{PRU_DEV} connection is created via \code{\link[eurocontrol:db_connection]{eurocontrol::db_connection()}}.}
 }
 \value{
-A tibble with one row per \verb{(YY, MM, ADEP, ADES, PCT_DEP, PCT_ARR)}
-combination; the executed SQL statements (one per year) are attached in the
-\code{"sql"} attribute.
+A tibble with an attached \code{"sql"} attribute (named vector of one SQL
+string per requested year) and columns:
+\itemize{
+\item{\code{YY}}{Year truncated date (first day of the year).}
+\item{\code{MM}}{Month truncated date (first day of the month).}
+\item{\code{ADEP}}{Departure airport code; non-target airports grouped as \code{"OTH"}.}
+\item{\code{ADES}}{Destination airport code; non-target airports grouped as \code{"OTH"}.}
+\item{\code{FROM_TOP34}}{\code{"Y"}/\code{"N"} flag if the departure airport is in the target set.}
+\item{\code{TO_TOP34}}{\code{"Y"}/\code{"N"} flag if the destination airport is in the target set.}
+\item{\code{TOP34}}{\code{"Y"} when either leg is in the target set, otherwise \code{"N"}.}
+\item{\code{PCT_DEP}}{Departure punctuality bucket (\verb{<=15} or \verb{>15}).}
+\item{\code{PCT_ARR}}{Arrival punctuality bucket (\verb{<=15} or \verb{>15}).}
+\item{\code{N_CODA}}{Number of CODA records in the bucket.}
+\item{\code{N_CFMU}}{Number of CFMU records in the bucket.}
+\item{\code{YEAR}}{Numeric year indicator matching the query year.}
+}
 }
 \description{
-Pulls CODA/CFMU punctuality counts for a set of airports and years by
-reusing the legacy SQL embedded in \code{02-chn-eur-data-prep.Rmd}.
+Pulls CODA/CFMU punctuality counts for a set of airports and years using a
+dbplyr translation of the legacy SQL embedded in \code{02-chn-eur-data-prep.Rmd}.
+Flights are bucketed by departure/arrival delay (<=15 minutes vs >15) and
+grouped by month and airport pairing with TOP34 flags.
 }

@@ -1,32 +1,41 @@
 #' Fetch APDF records for a single airport
 #'
 #' Queries `SWH_FCT.FAC_APDS_FLIGHT_IR691` via [eurocontrol::apdf_tbl()], filters
-#' to one airport and date window, then collects the rows used by the legacy
-#' pbwg-ectl-query-tool. The default column set mirrors the Python extract and
+#' to one airport and date window, then collects the rows. The default column set 
 #' keeps operational details (`AC_CLASS`, runway/stand, movement times) that are
 #' dropped by `eurocontrol::apdf_tidy()`.
 #'
-#' @inheritParams pbwg_nm_area_weight_segment
+#' @inheritParams pbwg_weight_segment_tfc_counts
 #' @param airport ICAO airport designator (e.g. `"EIDW"`). Only a single code is
 #'   allowed.
 #' @param columns Vector of column names to include. Defaults to the exact set
 #'   used by the Python scripts; see [pbwg_apdf_columns_default()] for details.
 #'
 #' @return A [tibble::tibble()] with the requested APDF columns and an attached
-#'   `"sql"` attribute describing the filter. Key fields include:
-#'
-#'   * `AP_C_FLTID`: flight identifier (source airport).
-#'   * `AP_C_FLTRUL`: rules under which the flight operates (`IFR`, `VFR`, `NA`).
-#'   * `AP_C_REG`: aircraft registration with separators removed.
-#'   * `ADEP_ICAO` / `ADES_ICAO`: departure/destination aerodrome (ICAO code).
-#'   * `SRC_PHASE`: `DEP` for departures, `ARR` for arrivals.
-#'   * `MVT_TIME_UTC` / `BLOCK_TIME_UTC` / `SCHED_TIME_UTC`: movement, block and
-#'     scheduled times in UTC.
-#'   * `ARCTYP`: ICAO aircraft type code (e.g. `A21N`).
-#'   * `AC_CLASS`: wake turbulence class (kept for H/M/L aggregation).
-#'   * `AP_C_RWY` / `AP_C_STND`: runway and stand identifiers.
-#'   * `C40_*` / `C100_*`: first/last crossing time, position, level and bearing
-#'     at 40 NM and 100 NM from the aerodrome reference point.
+#'   `"sql"` attribute describing the filter. Columns (default set):
+#'   \itemize{
+#'     \item{\code{AP_C_FLTID}}{Flight identifier (source airport).}
+#'     \item{\code{AP_C_FLTRUL}}{Rules under which the flight operates (`IFR`, `VFR`, `NA`).}
+#'     \item{\code{AP_C_REG}}{Aircraft registration with separators removed.}
+#'     \item{\code{ADEP_ICAO}}{Departure aerodrome (ICAO).}
+#'     \item{\code{ADES_ICAO}}{Destination aerodrome (ICAO).}
+#'     \item{\code{SRC_PHASE}}{`DEP` for departures, `ARR` for arrivals.}
+#'     \item{\code{MVT_TIME_UTC}}{Movement time (UTC).}
+#'     \item{\code{BLOCK_TIME_UTC}}{Block time (UTC).}
+#'     \item{\code{SCHED_TIME_UTC}}{Scheduled time (UTC).}
+#'     \item{\code{ARCTYP}}{ICAO aircraft type code (e.g. `A21N`).}
+#'     \item{\code{AC_CLASS}}{Wake turbulence class (kept for H/M/L aggregation).}
+#'     \item{\code{AP_C_RWY}}{Runway identifier.}
+#'     \item{\code{AP_C_STND}}{Stand identifier.}
+#'     \item{\code{C40_CROSS_TIME}}{Time of the first/last 40 NM crossing.}
+#'     \item{\code{C40_CROSS_LAT}}{Latitude of the 40 NM crossing.}
+#'     \item{\code{C40_CROSS_LON}}{Longitude of the 40 NM crossing.}
+#'     \item{\code{C100_CROSS_TIME}}{Time of the first/last 100 NM crossing.}
+#'     \item{\code{C100_CROSS_LAT}}{Latitude of the 100 NM crossing.}
+#'     \item{\code{C100_CROSS_LON}}{Longitude of the 100 NM crossing.}
+#'     \item{\code{C40_BEARING}}{Bearing at the 40 NM crossing.}
+#'     \item{\code{C100_BEARING}}{Bearing at the 100 NM crossing.}
+#'   }
 #' @export
 pbwg_apdf_fetch_airport_raw <- function(
     airport,
@@ -88,14 +97,17 @@ pbwg_apdf_fetch_airport_raw <- function(
 #'   [pbwg_apdf_domestic_prefixes_default()].
 #'
 #' @return Tibble with one row per airport per day containing:
-#'
-#'   * `ICAO`: airport code.
-#'   * `DATE`: movement date (UTC).
-#'   * `ARRS` / `DEPS`: arrival and departure counts.
-#'   * `HEAVY` / `MED` / `LIGHT`: counts by wake turbulence class
-#'     (`AC_CLASS`-derived).
-#'   * `ARRS_DOM` / `DEPS_DOM`: domestic arrivals/departures matched on ICAO
-#'     prefixes.
+#'   \itemize{
+#'     \item{\code{ICAO}}{Airport code.}
+#'     \item{\code{DATE}}{Movement date (UTC).}
+#'     \item{\code{ARRS}}{Arrival count.}
+#'     \item{\code{DEPS}}{Departure count.}
+#'     \item{\code{HEAVY}}{Heavy wake turbulence movements.}
+#'     \item{\code{MED}}{Medium wake turbulence movements.}
+#'     \item{\code{LIGHT}}{Light wake turbulence movements.}
+#'     \item{\code{ARRS_DOM}}{Domestic arrivals matched on ICAO prefixes.}
+#'     \item{\code{DEPS_DOM}}{Domestic departures matched on ICAO prefixes.}
+#'   }
 #' @export
 pbwg_apdf_daily_airport_movements <- function(
     airports,
@@ -186,12 +198,17 @@ pbwg_apdf_domestic_prefixes_default <- function() {
 #' @param domestic_prefixes Prefixes passed to [pbwg_apdf_is_domestic()].
 #'
 #' @return Tibble with one row per day for the provided airport, containing:
-#'
-#'   * `ICAO`: airport code.
-#'   * `DATE`: movement date (UTC).
-#'   * `ARRS` / `DEPS`: arrival and departure counts.
-#'   * `HEAVY` / `MED` / `LIGHT`: counts by wake turbulence class.
-#'   * `ARRS_DOM` / `DEPS_DOM`: domestic arrivals/departures based on prefixes.
+#'   \itemize{
+#'     \item{\code{ICAO}}{Airport code.}
+#'     \item{\code{DATE}}{Movement date (UTC).}
+#'     \item{\code{ARRS}}{Arrival count.}
+#'     \item{\code{DEPS}}{Departure count.}
+#'     \item{\code{HEAVY}}{Heavy wake turbulence movements.}
+#'     \item{\code{MED}}{Medium wake turbulence movements.}
+#'     \item{\code{LIGHT}}{Light wake turbulence movements.}
+#'     \item{\code{ARRS_DOM}}{Domestic arrivals based on prefixes.}
+#'     \item{\code{DEPS_DOM}}{Domestic departures based on prefixes.}
+#'   }
 #' @keywords internal
 pbwg_apdf_daily_summarise <- function(raw_tbl, airport, domestic_prefixes) {
   df <- raw_tbl |>
@@ -296,7 +313,7 @@ pbwg_apdf_is_domestic <- function(code, prefixes) {
 #' Breaks a `[wef, til]` span into one list element per calendar year, allowing
 #' multi-year APDF summaries to be queried in manageable blocks.
 #'
-#' @inheritParams pbwg_nm_area_weight_segment
+#' @inheritParams pbwg_weight_segment_tfc_counts
 #'
 #' @return List of lists with `wef` and `til` date entries for each year.
 #' @keywords internal

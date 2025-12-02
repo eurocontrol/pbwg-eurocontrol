@@ -1,16 +1,25 @@
 #' Daily DAIO traffic counts
 #'
-#' Executes the DAIO query that powers the PBWG tool. When `include_source_id`
-#' is `TRUE` the output matches the `query_daio_CHN()` variant from the Python
-#' implementation.
+#' Runs the DAIO aggregation used by PBWG, grouping the FIR-time entries by
+#' DAIO flag and region. Optional inclusion of `SK_SOURCE_ID` reproduces the
+#' CHN-specific variant of the legacy Python query.
 #'
-#' @inheritParams pbwg_nm_area_weight_segment
+#' @inheritParams pbwg_weight_segment_tfc_counts
 #' @param region One or more TZ codes (e.g. `"ECAC"`). Values are embedded into
 #'   the SQL `IN (...)` clause verbatim.
 #' @param include_source_id Should `SK_SOURCE_ID` be returned? Defaults to
 #'   `FALSE`, mirroring the classic DAIO table.
 #'
-#' @return A [tibble::tibble()] with `"sql"` attribute.
+#' @return A [tibble::tibble()] with `"sql"` attribute and columns:
+#'   \itemize{
+#'     \item{\code{YEAR}}{Numeric year derived from `ENTRY_TIME`.}
+#'     \item{\code{MONTH}}{Numeric month derived from `ENTRY_TIME`.}
+#'     \item{\code{ENTRY_DATE}}{Date (UTC) of the FIR entry.}
+#'     \item{\code{TZ_NAME}}{Region name from `DIMCL_TZ`.}
+#'     \item{\code{DAIO}}{DAIO flag (`D`, `A`, `I`, `O`).}
+#'     \item{\code{SK_SOURCE_ID}}{Optional source ID when `include_source_id = TRUE`.}
+#'     \item{\code{FLIGHT}}{Total flights for the grouping.}
+#'   }
 #' @export
 pbwg_daio <- function(
     wef,

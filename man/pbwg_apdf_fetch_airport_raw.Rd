@@ -31,26 +31,34 @@ access to \code{SWH_FCT.V_FAC_FLIGHT_MS} and \code{PRUDEV.V_PRU_AIRCRAFT_CATEGOR
 }
 \value{
 A \code{\link[tibble:tibble]{tibble::tibble()}} with the requested APDF columns and an attached
-\code{"sql"} attribute describing the filter. Key fields include:
+\code{"sql"} attribute describing the filter. Columns (default set):
 \itemize{
-\item \code{AP_C_FLTID}: flight identifier (source airport).
-\item \code{AP_C_FLTRUL}: rules under which the flight operates (\code{IFR}, \code{VFR}, \code{NA}).
-\item \code{AP_C_REG}: aircraft registration with separators removed.
-\item \code{ADEP_ICAO} / \code{ADES_ICAO}: departure/destination aerodrome (ICAO code).
-\item \code{SRC_PHASE}: \code{DEP} for departures, \code{ARR} for arrivals.
-\item \code{MVT_TIME_UTC} / \code{BLOCK_TIME_UTC} / \code{SCHED_TIME_UTC}: movement, block and
-scheduled times in UTC.
-\item \code{ARCTYP}: ICAO aircraft type code (e.g. \code{A21N}).
-\item \code{AC_CLASS}: wake turbulence class (kept for H/M/L aggregation).
-\item \code{AP_C_RWY} / \code{AP_C_STND}: runway and stand identifiers.
-\item \verb{C40_*} / \verb{C100_*}: first/last crossing time, position, level and bearing
-at 40 NM and 100 NM from the aerodrome reference point.
+\item{\code{AP_C_FLTID}}{Flight identifier (source airport).}
+\item{\code{AP_C_FLTRUL}}{Rules under which the flight operates (\code{IFR}, \code{VFR}, \code{NA}).}
+\item{\code{AP_C_REG}}{Aircraft registration with separators removed.}
+\item{\code{ADEP_ICAO}}{Departure aerodrome (ICAO).}
+\item{\code{ADES_ICAO}}{Destination aerodrome (ICAO).}
+\item{\code{SRC_PHASE}}{\code{DEP} for departures, \code{ARR} for arrivals.}
+\item{\code{MVT_TIME_UTC}}{Movement time (UTC).}
+\item{\code{BLOCK_TIME_UTC}}{Block time (UTC).}
+\item{\code{SCHED_TIME_UTC}}{Scheduled time (UTC).}
+\item{\code{ARCTYP}}{ICAO aircraft type code (e.g. \code{A21N}).}
+\item{\code{AC_CLASS}}{Wake turbulence class (kept for H/M/L aggregation).}
+\item{\code{AP_C_RWY}}{Runway identifier.}
+\item{\code{AP_C_STND}}{Stand identifier.}
+\item{\code{C40_CROSS_TIME}}{Time of the first/last 40 NM crossing.}
+\item{\code{C40_CROSS_LAT}}{Latitude of the 40 NM crossing.}
+\item{\code{C40_CROSS_LON}}{Longitude of the 40 NM crossing.}
+\item{\code{C100_CROSS_TIME}}{Time of the first/last 100 NM crossing.}
+\item{\code{C100_CROSS_LAT}}{Latitude of the 100 NM crossing.}
+\item{\code{C100_CROSS_LON}}{Longitude of the 100 NM crossing.}
+\item{\code{C40_BEARING}}{Bearing at the 40 NM crossing.}
+\item{\code{C100_BEARING}}{Bearing at the 100 NM crossing.}
 }
 }
 \description{
 Queries \code{SWH_FCT.FAC_APDS_FLIGHT_IR691} via \code{\link[eurocontrol:apdf_tbl]{eurocontrol::apdf_tbl()}}, filters
-to one airport and date window, then collects the rows used by the legacy
-pbwg-ectl-query-tool. The default column set mirrors the Python extract and
+to one airport and date window, then collects the rows. The default column set
 keeps operational details (\code{AC_CLASS}, runway/stand, movement times) that are
 dropped by \code{eurocontrol::apdf_tidy()}.
 }

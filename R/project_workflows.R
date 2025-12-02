@@ -1,0 +1,106 @@
+#' Fetch CHN-EUR datasets to Parquet
+#'
+#' Downloads NM area traffic counts (weight and market segments), regional
+#' roll-ups, APDF airport traffic counts, and OTP punctuality buckets for a date
+#' window, writing each dataset to Parquet files for downstream CHN-EUR
+#' reporting.
+#'
+#' @param wef Date; start of the interval (inclusive).
+#' @param til Date; end of the interval (inclusive).
+#' @param airports Character vector of ICAO airport codes to include for APDF
+#'   and OTP datasets.
+#' @param years Optional integer vector of years for OTP. Defaults to all years
+#'   overlapping `[wef, til]`.
+#' @param include_weight Logical; fetch NM area weight segment counts.
+#' @param include_market Logical; fetch NM area market segment counts.
+#' @param include_regional Logical; fetch regional roll-up (PBWG schema).
+#' @param include_airport Logical; fetch APDF airport traffic counts.
+#' @param include_otp Logical; fetch OTP punctuality buckets.
+#' @param out_dir Output directory; created if missing.
+#'
+#' @return Invisibly returns `TRUE` after writing requested datasets.
+#' @export
+fetch_chn_eur_datasets <- function(
+    wef = as.Date("2019-01-01"),
+    til = as.Date("2025-06-30"),
+    airports = c(
+      "EDDF", "EDDM", "EGKK", "EGLL", "EHAM", "LEBL",
+      "LEMD", "LFPG", "LGAV", "LIRF", "LSZH", "LTFM"
+    ),
+    years = NULL,
+    include_weight = TRUE,
+    include_market = TRUE,
+    include_regional = TRUE,
+    include_airport = TRUE,
+    include_otp = TRUE,
+    out_dir = "data/eur") {
+
+  if (!requireNamespace("arrow", quietly = TRUE)) {
+    cli::cli_abort("Package {.pkg arrow} must be installed to write Parquet outputs.")
+  }
+
+  dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+  start_chr <- format(wef, "%Y-%m-%d")
+  end_chr <- format(til, "%Y-%m-%d")
+
+  if (include_weight) {
+    cli::cli_inform("Fetching NM area weight segment counts...")
+    nm_weight <- pbwg_weight_segment_tfc_counts(wef, til)
+    arrow::write_parquet(
+      nm_weight,
+      file.path(out_dir, glue::glue("NM_AREA_WEIGHT_SEGMENT_RESULT_{start_chr}_{end_chr}.parquet"))
+    )
+  }
+
+  if (include_market) {
+    cli::cli_inform("Fetching NM area market segment counts...")
+    nm_market <- pbwg_market_segment_tfc_counts(wef, til)
+    arrow::write_parquet(
+      nm_market,
+      file.path(out_dir, glue::glue("NM_AREA_MARKET_SEGMENT_RESULT_{start_chr}_{end_chr}.parquet"))
+    )
+  }
+
+  if (include_regional) {
+    cli::cli_inform("Fetching regional traffic summary (PBWG schema)...")
+    pbwg_data <- pbwg_traffic_summary(wef, til, schema = "pbwg")$data
+    arrow::write_parquet(
+      pbwg_data,
+      file.path(out_dir, glue::glue("EUR_TFC_COUNTS_{start_chr}_{end_chr}.parquet"))
+    )
+  }
+
+  if (include_airport) {
+    cli::cli_inform("Fetching APDF airport traffic counts...")
+    apdf <- pbwg_apdf_daily_airport_movements(airports, wef, til)
+    purrr::walk(
+      unique(apdf$ICAO),
+      function(icao) {
+        chunk <- apdf |>
+          dplyr::filter(.data$ICAO == !!icao)
+        arrow::write_parquet(
+          chunk,
+          file.path(
+            out_dir,
+            glue::glue("{icao}_{start_chr}_{end_chr}_APT_TFC.parquet")
+          )
+        )
+      }
+    )
+  }
+
+  if (include_otp) {
+    cli::cli_inform("Fetching OTP punctuality buckets...")
+    otp_years <- years
+    if (is.null(otp_years)) {
+      otp_years <- seq.int(lubridate::year(as.Date(wef)), lubridate::year(as.Date(til)))
+    }
+    otp <- pbwg_otp_punctuality(otp_years, airports)
+    arrow::write_parquet(
+      otp,
+      file.path(out_dir, glue::glue("OTP_RESULT_{start_chr}_{end_chr}.parquet"))
+    )
+  }
+
+  invisible(TRUE)
+}

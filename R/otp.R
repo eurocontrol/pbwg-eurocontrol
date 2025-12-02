@@ -1,7 +1,9 @@
 #' OTP punctuality extract
 #'
-#' Pulls CODA/CFMU punctuality counts for a set of airports and years by
-#' reusing the legacy SQL embedded in `02-chn-eur-data-prep.Rmd`.
+#' Pulls CODA/CFMU punctuality counts for a set of airports and years using a
+#' dbplyr translation of the legacy SQL embedded in `02-chn-eur-data-prep.Rmd`.
+#' Flights are bucketed by departure/arrival delay (<=15 minutes vs >15) and
+#' grouped by month and airport pairing with TOP34 flags.
 #'
 #' @param years Integer vector of years (Gregorian) to retrieve.
 #' @param airports Character vector of ICAO airport designators used for the
@@ -9,9 +11,22 @@
 #' @param conn Optional Oracle [DBI::DBIConnection-class]. When omitted a fresh
 #'   `PRU_DEV` connection is created via [eurocontrol::db_connection()].
 #'
-#' @return A tibble with one row per `(YY, MM, ADEP, ADES, PCT_DEP, PCT_ARR)`
-#'   combination; the executed SQL statements (one per year) are attached in the
-#'   `"sql"` attribute.
+#' @return A tibble with an attached `"sql"` attribute (named vector of one SQL
+#'   string per requested year) and columns:
+#'   \itemize{
+#'     \item{\code{YY}}{Year truncated date (first day of the year).}
+#'     \item{\code{MM}}{Month truncated date (first day of the month).}
+#'     \item{\code{ADEP}}{Departure airport code; non-target airports grouped as `"OTH"`.}
+#'     \item{\code{ADES}}{Destination airport code; non-target airports grouped as `"OTH"`.}
+#'     \item{\code{FROM_TOP34}}{`"Y"`/`"N"` flag if the departure airport is in the target set.}
+#'     \item{\code{TO_TOP34}}{`"Y"`/`"N"` flag if the destination airport is in the target set.}
+#'     \item{\code{TOP34}}{`"Y"` when either leg is in the target set, otherwise `"N"`.}
+#'     \item{\code{PCT_DEP}}{Departure punctuality bucket (`<=15` or `>15`).}
+#'     \item{\code{PCT_ARR}}{Arrival punctuality bucket (`<=15` or `>15`).}
+#'     \item{\code{N_CODA}}{Number of CODA records in the bucket.}
+#'     \item{\code{N_CFMU}}{Number of CFMU records in the bucket.}
+#'     \item{\code{YEAR}}{Numeric year indicator matching the query year.}
+#'   }
 #' @export
 pbwg_otp_punctuality <- function(years, airports, conn = NULL) {
   if (missing(years) || length(years) == 0) {
@@ -23,11 +38,6 @@ pbwg_otp_punctuality <- function(years, airports, conn = NULL) {
   }
 
   years <- sort(unique(as.integer(years)))
-  sql_map <- purrr::map_chr(
-    years,
-    ~ pbwg_build_otp_sql(.x, airports)
-  )
-  names(sql_map) <- years
 
   conn_info <- pbwg_resolve_conn(conn, schema = "PRU_DEV")
   con <- conn_info$conn
@@ -37,109 +47,128 @@ pbwg_otp_punctuality <- function(years, airports, conn = NULL) {
     }
   }, add = TRUE)
 
-  data <- purrr::map2_dfr(
-    sql_map,
+  queries <- purrr::map(
     years,
-    ~ DBI::dbGetQuery(con, .x) |>
-      tibble::as_tibble() |>
+    ~ pbwg_build_otp_query(con, .x, airports)
+  )
+
+  sql_map <- purrr::map_chr(
+    queries,
+    dbplyr::sql_render,
+    con = con
+  )
+  names(sql_map) <- years
+
+  data <- purrr::map2_dfr(
+    queries,
+    years,
+    ~ dplyr::collect(.x) |>
       dplyr::mutate(YEAR = .y)
   )
 
   pbwg_attach_sql(data, sql_map)
 }
 
-pbwg_build_otp_sql <- function(year, airports) {
+pbwg_build_otp_query <- function(con, year, airports) {
   next_year <- year + 1L
-  airport_string <- paste(airports, collapse = ",")
-  glue::glue(
-    "
-    WITH apt_one_list AS (
-      SELECT '{airport_string}' AS ids
-      FROM dual
-    ),
-    apts AS (
-      SELECT TRIM(REGEXP_SUBSTR(ids, '[^,]+', 1, LEVEL)) AS apt_id
-      FROM apt_one_list
-      CONNECT BY LEVEL <= LENGTH(ids) - LENGTH(REPLACE(ids, ',', '')) + 1
-    ),
-    t1 AS (
-      SELECT
-        actual_out,
-        id AS id_a,
-        CASE
-          WHEN ROUND((TRUNC(actual_out, 'MI') - TRUNC(std, 'MI')) * 1440) <= 15 THEN '<=15'
-          ELSE '>15'
-        END AS pct_dep,
-        CASE
-          WHEN ROUND((TRUNC(actual_in, 'MI') - TRUNC(sta, 'MI')) * 1440) <= 15 THEN '<=15'
-          ELSE '>15'
-        END AS pct_arr
-      FROM acars.pru_acars_flight
-      WHERE actual_out >= TO_DATE('01-JAN-{year}', 'DD-MON-YYYY')
-        AND actual_out < TO_DATE('01-JAN-{next_year}', 'DD-MON-YYYY')
-        AND (actual_out IS NULL OR actual_off > actual_out)
-        AND (actual_out IS NULL OR actual_in > actual_on)
-        AND (actual_out IS NULL OR actual_on > actual_off)
-        AND (actual_out IS NULL OR ROUND((actual_in - sta) * 1440) BETWEEN -60 AND 720)
-        AND (actual_out IS NULL OR ROUND((actual_out - std) * 1440) BETWEEN -60 AND 720)
-    ),
-    t2 AS (
-      SELECT
-        TRUNC(lobt, 'MM') AS mm,
-        TRUNC(lobt, 'YYYY') AS yy,
-        CASE
-          WHEN UPPER(ades) IN (SELECT apt_id FROM apts) THEN ades
-          ELSE 'OTH'
-        END AS ades,
-        CASE
-          WHEN UPPER(adep) IN (SELECT apt_id FROM apts) THEN adep
-          ELSE 'OTH'
-        END AS adep,
-        CASE
-          WHEN UPPER(adep) IN (SELECT apt_id FROM apts) THEN 'Y'
-          ELSE 'N'
-        END AS from_top34,
-        CASE
-          WHEN UPPER(ades) IN (SELECT apt_id FROM apts) THEN 'Y'
-          ELSE 'N'
-        END AS to_top34,
-        id AS id_f
-      FROM swh_fct.fac_flight
-      WHERE lobt >= TO_DATE('01-JAN-{year}', 'DD-MON-YYYY')
-        AND lobt < TO_DATE('01-JAN-{next_year}', 'DD-MON-YYYY')
-    ),
-    t3 AS (
-      SELECT a.*, b.*
-      FROM t1 a
-      LEFT JOIN t2 b ON a.id_a = b.id_f
-    )
-    SELECT
-      yy,
-      mm,
-      adep,
-      ades,
-      from_top34,
-      to_top34,
-      CASE
-        WHEN from_top34 = 'Y' OR to_top34 = 'Y' THEN 'Y'
-        ELSE 'N'
-      END AS top34,
-      pct_dep,
-      pct_arr,
-      COUNT(id_a) AS n_coda,
-      COUNT(id_f) AS n_cfmu
-    FROM t3
-    GROUP BY
-      yy,
-      mm,
-      adep,
-      ades,
-      pct_dep,
-      pct_arr,
-      from_top34,
-      to_top34
-    ORDER BY
-      mm
-    "
+  start_expr <- dbplyr::sql(glue::glue("TO_DATE('01-JAN-{year}', 'DD-MON-YYYY')"))
+  end_expr <- dbplyr::sql(glue::glue("TO_DATE('01-JAN-{next_year}', 'DD-MON-YYYY')"))
+
+  dep_diff <- dbplyr::sql(
+    "ROUND((TRUNC(ACTUAL_OUT, 'MI') - TRUNC(STD, 'MI')) * 1440)"
   )
+  arr_diff <- dbplyr::sql(
+    "ROUND((TRUNC(ACTUAL_IN, 'MI') - TRUNC(STA, 'MI')) * 1440)"
+  )
+
+  acars_tbl <- dplyr::tbl(con, dbplyr::in_schema("ACARS", "PRU_ACARS_FLIGHT"))
+  t1 <- acars_tbl |>
+    dplyr::filter(
+      .data$ACTUAL_OUT >= !!start_expr,
+      .data$ACTUAL_OUT < !!end_expr,
+      .data$ACTUAL_OFF > .data$ACTUAL_OUT,
+      .data$ACTUAL_IN > .data$ACTUAL_ON,
+      .data$ACTUAL_ON > .data$ACTUAL_OFF,
+      dplyr::between(!!arr_diff, -60, 720),
+      dplyr::between(!!dep_diff, -60, 720)
+    ) |>
+    dplyr::transmute(
+      ID = .data$ID,
+      PCT_DEP = dplyr::if_else(!!dep_diff <= 15, "<=15", ">15"),
+      PCT_ARR = dplyr::if_else(!!arr_diff <= 15, "<=15", ">15")
+    )
+
+  flights_tbl <- dplyr::tbl(con, dbplyr::in_schema("SWH_FCT", "FAC_FLIGHT"))
+  airports_upper <- toupper(airports)
+
+  t2 <- flights_tbl |>
+    dplyr::filter(
+      .data$LOBT >= !!start_expr,
+      .data$LOBT < !!end_expr
+    ) |>
+    dplyr::transmute(
+      ID = .data$ID,
+      ID_F = .data$ID,
+      MM = dbplyr::sql("TRUNC(LOBT, 'MM')"),
+      YY = dbplyr::sql("TRUNC(LOBT, 'YYYY')"),
+      ADES = dplyr::if_else(
+        toupper(.data$ADES) %in% airports_upper,
+        .data$ADES,
+        "OTH"
+      ),
+      ADEP = dplyr::if_else(
+        toupper(.data$ADEP) %in% airports_upper,
+        .data$ADEP,
+        "OTH"
+      ),
+      FROM_TOP34 = dplyr::if_else(
+        toupper(.data$ADEP) %in% airports_upper,
+        "Y",
+        "N"
+      ),
+      TO_TOP34 = dplyr::if_else(
+        toupper(.data$ADES) %in% airports_upper,
+        "Y",
+        "N"
+      )
+    )
+
+  t1 |>
+    dplyr::left_join(t2, by = "ID") |>
+    dplyr::group_by(
+      .data$YY,
+      .data$MM,
+      .data$ADEP,
+      .data$ADES,
+      .data$PCT_DEP,
+      .data$PCT_ARR,
+      .data$FROM_TOP34,
+      .data$TO_TOP34
+    ) |>
+    dplyr::summarise(
+      N_CODA = dplyr::n(),
+      N_CFMU = dplyr::sum(dplyr::if_else(is.na(.data$ID_F), 0L, 1L)),
+      .groups = "drop"
+    ) |>
+    dplyr::mutate(
+      TOP34 = dplyr::if_else(
+        .data$FROM_TOP34 == "Y" | .data$TO_TOP34 == "Y",
+        "Y",
+        "N"
+      )
+    ) |>
+    dplyr::select(
+      "YY",
+      "MM",
+      "ADEP",
+      "ADES",
+      "FROM_TOP34",
+      "TO_TOP34",
+      "TOP34",
+      "PCT_DEP",
+      "PCT_ARR",
+      "N_CODA",
+      "N_CFMU"
+    ) |>
+    dplyr::arrange(.data$MM)
 }

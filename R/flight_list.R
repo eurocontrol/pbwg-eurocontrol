@@ -1,9 +1,10 @@
 #' NM area traffic by wake turbulence category
 #'
-#' Runs the PBWG "Traffic NM Area per Weight Segment" query for data for PBWG 
-#' reports. Gets data from the PRISME flights fact (`SWH_FCT.V_FAC_FLIGHT_MS`),
-#' using [eurocontrol::flights_tbl()] as the base. Market segment data are only
-#' available from 2004 onwards.
+#' Counts Network Manager area flights per day and wake turbulence category,
+#' filtering to operational statuses (`TE`, `TA`, `AA`) and the requested date
+#' window. Uses [eurocontrol::flights_tbl()] as the base and joins aircraft
+#' categories from `PRUDEV.V_PRU_AIRCRAFT_CATEGORY` (limited to PBWG-allowed
+#' categories) before aggregating.
 #'
 #' @param wef Start date (inclusive). Can be anything that
 #'   [lubridate::as_date()] understands.
@@ -26,7 +27,7 @@
 #'   * `UNIT_CODE`: fixed `"NM_AREA"`.
 #'   * `UNIT_NAME`: fixed `"Total Network Manager Area"`.
 #' @export
-pbwg_nm_area_weight_segment <- function(wef, til, conn = NULL) {
+pbwg_weight_segment_tfc_counts <- function(wef, til, conn = NULL) {
   dates <- pbwg_sql_dates(wef, til)
 
   conn_info <- pbwg_resolve_conn(conn)
@@ -95,12 +96,13 @@ pbwg_nm_area_weight_segment <- function(wef, til, conn = NULL) {
 
 #' NM area traffic by market segment
 #' 
-#' Runs the PBWG "Traffic NM Area per Market Segment" query for data for PBWG 
-#' reports. Gets data from the PRISME flights fact (`SWH_FCT.V_FAC_FLIGHT_MS`),
-#' using [eurocontrol::flights_tbl()] as the base joined on ' `DIM_FLIGHT_TYPE_RULE`. 
-#' Market segment data are only available from 2004.
+#' Counts Network Manager area flights per day and market segment, filtering the
+#' flights fact to operational statuses (`TE`, `TA`, `AA`) and the requested
+#' date window. Segments are resolved through `SWH_FCT.DIM_FLIGHT_TYPE_RULE`,
+#' and missing day/segment combinations are backfilled with zeros to give a
+#' complete calendar grid.
 #'
-#' @inheritParams pbwg_nm_area_weight_segment
+#' @inheritParams pbwg_weight_segment_tfc_counts
 #'
 #' @return A [tibble::tibble()] with one row per day/market segment and an
 #'   attached `"sql"` attribute. Columns:
@@ -114,7 +116,7 @@ pbwg_nm_area_weight_segment <- function(wef, til, conn = NULL) {
 #'   * `UNIT_NAME`: fixed `"Total Network Manager Area"`.
 #'   * `FLIGHT`: count of flights for the date/segment combination.
 #' @export
-pbwg_nm_area_market_segment <- function(wef, til, conn = NULL) {
+pbwg_market_segment_tfc_counts <- function(wef, til, conn = NULL) {
   dates <- pbwg_sql_dates(wef, til)
 
   conn_info <- pbwg_resolve_conn(conn)

@@ -1,15 +1,29 @@
 #' PBWG regional traffic summary (EUR view)
 #'
-#' Recreates the composite PBWG workflow that merges DAIO, H/M/L,
-#' and market segment statistics into a single daily table.
+#' PBWG workflow that merges DAIO, H/M/L, and market 
+#' segment statistics into a single daily table.
 #'
-#' @inheritParams pbwg_nm_area_weight_segment
+#' @inheritParams pbwg_weight_segment_tfc_counts
 #' @param region DAIO region code. Defaults to `"ECAC"`.
+#' @param schema Output shape: `"pbwg"` (default, full EUR table with ARRS/DEPS,
+#'   domestic, overflights, and PAX) or `"chn"` (lean CHN-EUR dashboard schema).
 #'
 #' @return A list with the processed `data`, an optional `plot` (if `plotly`
 #'   is installed), diagnostic `details`, and the `raw` component tables.
+#'   \describe{
+#'     \item{data}{Tibble of daily metrics. For `schema = "pbwg"` columns are
+#'       `REG`, `DATE`, `FLIGHTS`, `ARRS`, `DEPS`, `HEAVY`, `MED`, `LIGHT`,
+#'       `ARRS_DOM`, `DEPS_DOM`, `OVR_FLTS`, `PAX`, `CARGO`, `OTHER`, `D`, `A`,
+#'       `I`, `O`, `SCHED`, `CHARTER`. For `schema = "chn"` columns are `REG`,
+#'       `DATE`, `FLIGHTS`, `D`, `A`, `I`, `O`, `HEAVY`, `MED`, `LIGHT`, `SCHED`,
+#'       `CHARTER`, `CARGO`, `OTHER`.}
+#'     \item{plot}{Optional `plotly` object showing DAIO breakdown if `plotly` is installed, otherwise `NULL`.}
+#'     \item{diagnostics}{List with `deltas` (sanity-check calculations) and `messages` (warnings about imbalances).}
+#'     \item{raw}{List of component tables: `weight_segment`, `market_segment`, and `daio`.}
+#'   }
 #' @export
-pbwg_traffic_summary <- function(wef, til, region = "ECAC", conn = NULL) {
+pbwg_traffic_summary <- function(wef, til, region = "ECAC", schema = c("pbwg", "chn"), conn = NULL) {
+  schema <- rlang::arg_match(schema)
   conn_info <- pbwg_resolve_conn(conn)
   con <- conn_info$conn
   on.exit({
@@ -18,8 +32,8 @@ pbwg_traffic_summary <- function(wef, til, region = "ECAC", conn = NULL) {
     }
   }, add = TRUE)
 
-  weight <- pbwg_nm_area_weight_segment(wef, til, conn = con)
-  market <- pbwg_nm_area_market_segment(wef, til, conn = con)
+  weight <- pbwg_weight_segment_tfc_counts(wef, til, conn = con)
+  market <- pbwg_market_segment_tfc_counts(wef, til, conn = con)
   daio <- pbwg_daio(wef, til, region = region, include_source_id = TRUE, conn = con)
 
   processed <- pbwg_compile_components(weight, market, daio)
@@ -43,49 +57,7 @@ pbwg_traffic_summary <- function(wef, til, region = "ECAC", conn = NULL) {
       "SCHED", "CHARTER"
     )
 
-  diagnostics <- list(
-    deltas = processed$delta,
-    messages = processed$messages
-  )
-
-  list(
-    data = pbwg,
-    plot = processed$plot,
-    diagnostics = diagnostics,
-    raw = list(
-      weight_segment = weight,
-      market_segment = market,
-      daio = daio
-    )
-  )
-}
-
-#' CHN-EUR collaboration traffic summary
-#'
-#' Equivalent to the Python `query_process_chn()` routine. Returns the
-#' streamlined table used in the CHN-EUR dashboard.
-#'
-#' @inheritParams pbwg_traffic_summary
-#'
-#' @return Same structure as [pbwg_traffic_summary()], but the `data`
-#'   component matches the CHN-EUR schema.
-#' @export
-pbwg_chn_summary <- function(wef, til, region = "ECAC", conn = NULL) {
-  conn_info <- pbwg_resolve_conn(conn)
-  con <- conn_info$conn
-  on.exit({
-    if (conn_info$created) {
-      try(DBI::dbDisconnect(con), silent = TRUE)
-    }
-  }, add = TRUE)
-
-  weight <- pbwg_nm_area_weight_segment(wef, til, conn = con)
-  market <- pbwg_nm_area_market_segment(wef, til, conn = con)
-  daio <- pbwg_daio(wef, til, region = region, include_source_id = TRUE, conn = con)
-
-  processed <- pbwg_compile_components(weight, market, daio)
-
-  eur <- processed$share |>
+  chn <- processed$share |>
     dplyr::mutate(REG = "EUR") |>
     dplyr::select(
       "REG", "DATE", "FLIGHTS",
@@ -94,13 +66,15 @@ pbwg_chn_summary <- function(wef, til, region = "ECAC", conn = NULL) {
       "SCHED", "CHARTER", "CARGO", "OTHER"
     )
 
+  data_out <- if (schema == "pbwg") pbwg else chn
+
   diagnostics <- list(
     deltas = processed$delta,
     messages = processed$messages
   )
 
   list(
-    data = eur,
+    data = data_out,
     plot = processed$plot,
     diagnostics = diagnostics,
     raw = list(
@@ -111,6 +85,30 @@ pbwg_chn_summary <- function(wef, til, region = "ECAC", conn = NULL) {
   )
 }
 
+#' Compile DAIO, weight, and market components
+#'
+#' Internal helper that normalises the component tables, aligns dates, and
+#' produces both share data and diagnostics.
+#'
+#' @param weight Tibble of weight category counts with columns including
+#'   `ENTRY_DATE`, `WK_TBL_CAT`, `CATEGORY1`, and `FLIGHT`.
+#' @param market Tibble of market segment counts with columns including
+#'   `ENTRY_DATE`, `MARKET_SEGMENT_DESCR`, and `FLIGHT`.
+#' @param daio Tibble of DAIO counts with columns including `ENTRY_DATE`,
+#'   `DAIO`, and `FLIGHT`.
+#'
+#' @return A list with:
+#'   \describe{
+#'     \item{\code{share}}{Tibble with columns `DATE`, `FLIGHTS`, `D`, `A`, `I`,
+#'       `O`, `HEAVY`, `MED`, `LIGHT`, `SCHED`, `CHARTER`, `CARGO`, `OTHER`.}
+#'     \item{\code{delta}}{Output of [pbwg_check_numbers()] adding `DAIO`,
+#'       `D_DAIO`, `HML`, `D_HML`, `MARK`, and `D_MARK` to the share columns.}
+#'     \item{\code{messages}}{Character vector of diagnostic messages from
+#'       [pbwg_check_messages()].}
+#'     \item{\code{plot}}{Optional `plotly` object showing the DAIO breakdown,
+#'       otherwise `NULL`.}
+#'   }
+#' @keywords internal
 pbwg_compile_components <- function(weight, market, daio) {
   weight <- pbwg_upper_names(weight)
   market <- pbwg_upper_names(market)
@@ -177,6 +175,24 @@ pbwg_compile_components <- function(weight, market, daio) {
   )
 }
 
+#' Prepare H/M/L counts
+#'
+#' Aggregates raw weight category counts into Heavy/Medium/Light totals,
+#' reconciles them against overall flight counts, and returns daily H/M/L.
+#'
+#' @param weight Tibble of weight category counts with at least `ENTRY_DATE`,
+#'   `WK_TBL_CAT`, `CATEGORY1`, and `FLIGHT`.
+#' @param flt Tibble with overall flights per day, containing `ENTRY_DATE`
+#'   and `FLIGHTS`.
+#'
+#' @return Tibble with columns:
+#'   \itemize{
+#'     \item{\code{ENTRY_DATE}}{Date of operation.}
+#'     \item{\code{HEAVY}}{Heavy aircraft movements.}
+#'     \item{\code{MED}}{Medium aircraft movements.}
+#'     \item{\code{LIGHT}}{Light aircraft movements.}
+#'   }
+#' @keywords internal
 pbwg_prepare_hml <- function(weight, flt) {
   hml <- weight |>
     dplyr::mutate(
@@ -233,6 +249,23 @@ pbwg_prepare_hml <- function(weight, flt) {
     )
 }
 
+#' Distribute H/M/L delta back into categories
+#'
+#' Adjusts Heavy/Medium/Light counts so they sum to the observed total flights,
+#' allocating the discrepancy using fixed proportions.
+#'
+#' @param df Tibble with daily H/M/L totals and `FLIGHTS`, containing columns
+#'   `ENTRY_DATE`, `H`, `M`, `L`, `FLIGHTS`, `N_HML`, and `CHECK_N`.
+#'
+#' @return Tibble with the input columns plus:
+#'   \itemize{
+#'     \item{\code{H2}}{Adjusted heavy movements.}
+#'     \item{\code{M2}}{Adjusted medium movements.}
+#'     \item{\code{L2}}{Adjusted light movements.}
+#'     \item{\code{CHECK_N2}}{Adjusted total H/M/L sum.}
+#'     \item{\code{DELTA}}{Remaining gap to `FLIGHTS` after adjustment.}
+#'   }
+#' @keywords internal
 pbwg_fix_hml_delta <- function(df) {
   df |>
     dplyr::mutate(
@@ -244,6 +277,22 @@ pbwg_fix_hml_delta <- function(df) {
     )
 }
 
+#' Prepare market segment counts
+#'
+#' Converts raw market segment counts into PBWG segment groupings and ensures
+#' required columns exist.
+#'
+#' @param market Tibble with `ENTRY_DATE`, `MARKET_SEGMENT_DESCR`, and `FLIGHT`.
+#'
+#' @return Tibble with columns:
+#'   \itemize{
+#'     \item{\code{ENTRY_DATE}}{Date of operation.}
+#'     \item{\code{SCHED}}{Scheduled flights (mainline + low-cost + regional aircraft).}
+#'     \item{\code{CHARTER}}{Charter flights.}
+#'     \item{\code{CARGO}}{All-cargo flights.}
+#'     \item{\code{OTHER}}{Business aviation, military, and other types.}
+#'   }
+#' @keywords internal
 pbwg_prepare_segments <- function(market) {
   seg <- market |>
     dplyr::group_by(.data$ENTRY_DATE, .data$MARKET_SEGMENT_DESCR) |>
@@ -284,4 +333,15 @@ pbwg_prepare_segments <- function(market) {
         .data$MILITARY + .data$NOT_CLASSIFIED
     ) |>
     dplyr::select("ENTRY_DATE", "SCHED", "CHARTER", "CARGO", "OTHER")
+}
+
+#' CHN-EUR collaboration traffic summary
+#'
+#' Thin wrapper around [pbwg_traffic_summary()] returning the CHN-EUR schema
+#' (`schema = "chn"`).
+#'
+#' @inheritParams pbwg_traffic_summary
+#' @export
+pbwg_chn_summary <- function(wef, til, region = "ECAC", conn = NULL) {
+  pbwg_traffic_summary(wef, til, region = region, schema = "chn", conn = conn)
 }

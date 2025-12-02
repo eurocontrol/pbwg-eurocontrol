@@ -32,13 +32,15 @@ access to \code{SWH_FCT.V_FAC_FLIGHT_MS} and \code{PRUDEV.V_PRU_AIRCRAFT_CATEGOR
 \value{
 Tibble with one row per airport per day containing:
 \itemize{
-\item \code{ICAO}: airport code.
-\item \code{DATE}: movement date (UTC).
-\item \code{ARRS} / \code{DEPS}: arrival and departure counts.
-\item \code{HEAVY} / \code{MED} / \code{LIGHT}: counts by wake turbulence class
-(\code{AC_CLASS}-derived).
-\item \code{ARRS_DOM} / \code{DEPS_DOM}: domestic arrivals/departures matched on ICAO
-prefixes.
+\item{\code{ICAO}}{Airport code.}
+\item{\code{DATE}}{Movement date (UTC).}
+\item{\code{ARRS}}{Arrival count.}
+\item{\code{DEPS}}{Departure count.}
+\item{\code{HEAVY}}{Heavy wake turbulence movements.}
+\item{\code{MED}}{Medium wake turbulence movements.}
+\item{\code{LIGHT}}{Light wake turbulence movements.}
+\item{\code{ARRS_DOM}}{Domestic arrivals matched on ICAO prefixes.}
+\item{\code{DEPS_DOM}}{Domestic departures matched on ICAO prefixes.}
 }
 }
 \description{

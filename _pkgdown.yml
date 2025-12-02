@@ -12,25 +12,36 @@ authors:
     html: "<img src='https://ansperformance.eu/nvctr/reference/figures/euctrl-logo-wide.svg' width=112 alt='EUROCONTROL logo'>"
 
 reference:
-- title: Traffic summaries
+- title: Network-wide traffic counts
   desc: >
-    Daily NM area, DAIO, and CHN-EUR composite outputs used in PBWG reporting.
+    NM area counts by wake turbulence and market segment, plus raw DAIO daily totals.
   contents:
-  - pbwg_nm_area_weight_segment
-  - pbwg_nm_area_market_segment
+  - pbwg_weight_segment_tfc_counts
+  - pbwg_market_segment_tfc_counts
   - pbwg_daio
+
+- title: Regional summaries (EUR / CHN-EUR)
+  desc: >
+    Daily roll-ups that merge DAIO, H/M/L, and market segments, with diagnostics.
+  contents:
   - pbwg_traffic_summary
   - pbwg_chn_summary
 
-- title: APDF airport data
+- title: Airport-level APDF
   desc: >
-    Airport-level APDF extracts and summaries.
+    APDF pulls for one or more airports, returning raw movement rows or daily summaries with H/M/L and domestic flags.
   contents:
   - pbwg_apdf_fetch_airport_raw
   - pbwg_apdf_daily_airport_movements
 
-- title: Punctuality
+- title: Punctuality (from CODA AODF)
   desc: >
-    CODA/CFMU on-time performance pulls for the requested airports/years.
+    On-time performance extracts bucketed by <=15 min vs >15 min delays for selected airports/years.
   contents:
   - pbwg_otp_punctuality
+
+- title: Dataset exporters
+  desc: >
+    Convenience wrapper to pull and persist CHN-EUR datasets in one call.
+  contents:
+  - fetch_chn_eur_datasets
