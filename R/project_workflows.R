@@ -44,30 +44,36 @@ fetch_chn_eur_datasets <- function(
   end_chr <- format(til, "%Y-%m-%d")
 
   if (include_weight) {
-    cli::cli_inform("Fetching NM area weight segment counts...")
-    nm_weight <- pbwg_weight_segment_tfc_counts(wef, til)
-    arrow::write_parquet(
-      nm_weight,
-      file.path(out_dir, glue::glue("NM_AREA_WEIGHT_SEGMENT_RESULT_{start_chr}_{end_chr}.parquet"))
-    )
+    path_weight <- file.path(out_dir, glue::glue("NM_AREA_WEIGHT_SEGMENT_RESULT_{start_chr}_{end_chr}.parquet"))
+    if (file.exists(path_weight)) {
+      cli::cli_inform("Skipping NM area weight segment counts (exists).")
+    } else {
+      cli::cli_inform("Fetching NM area weight segment counts...")
+      nm_weight <- pbwg_weight_segment_tfc_counts(wef, til)
+      arrow::write_parquet(nm_weight, path_weight)
+    }
   }
 
   if (include_market) {
-    cli::cli_inform("Fetching NM area market segment counts...")
-    nm_market <- pbwg_market_segment_tfc_counts(wef, til)
-    arrow::write_parquet(
-      nm_market,
-      file.path(out_dir, glue::glue("NM_AREA_MARKET_SEGMENT_RESULT_{start_chr}_{end_chr}.parquet"))
-    )
+    path_market <- file.path(out_dir, glue::glue("NM_AREA_MARKET_SEGMENT_RESULT_{start_chr}_{end_chr}.parquet"))
+    if (file.exists(path_market)) {
+      cli::cli_inform("Skipping NM area market segment counts (exists).")
+    } else {
+      cli::cli_inform("Fetching NM area market segment counts...")
+      nm_market <- pbwg_market_segment_tfc_counts(wef, til)
+      arrow::write_parquet(nm_market, path_market)
+    }
   }
 
   if (include_regional) {
-    cli::cli_inform("Fetching regional traffic summary (PBWG schema)...")
-    pbwg_data <- pbwg_traffic_summary(wef, til, schema = "pbwg")$data
-    arrow::write_parquet(
-      pbwg_data,
-      file.path(out_dir, glue::glue("EUR_TFC_COUNTS_{start_chr}_{end_chr}.parquet"))
-    )
+    path_regional <- file.path(out_dir, glue::glue("EUR_TFC_COUNTS_{start_chr}_{end_chr}.parquet"))
+    if (file.exists(path_regional)) {
+      cli::cli_inform("Skipping regional traffic summary (exists).")
+    } else {
+      cli::cli_inform("Fetching regional traffic summary (PBWG schema)...")
+      pbwg_data <- pbwg_traffic_summary(wef, til, schema = "pbwg")$data
+      arrow::write_parquet(pbwg_data, path_regional)
+    }
   }
 
   if (include_airport) {
@@ -76,30 +82,34 @@ fetch_chn_eur_datasets <- function(
     purrr::walk(
       unique(apdf$ICAO),
       function(icao) {
-        chunk <- apdf |>
-          dplyr::filter(.data$ICAO == !!icao)
-        arrow::write_parquet(
-          chunk,
-          file.path(
-            out_dir,
-            glue::glue("{icao}_{start_chr}_{end_chr}_APT_TFC.parquet")
-          )
+        out_path <- file.path(
+          out_dir,
+          glue::glue("{icao}_{start_chr}_{end_chr}_APT_TFC.parquet")
         )
+        if (file.exists(out_path)) {
+          cli::cli_inform("Skipping APDF for {icao} (exists).")
+        } else {
+          chunk <- apdf |>
+            dplyr::filter(.data$ICAO == !!icao)
+          arrow::write_parquet(chunk, out_path)
+        }
       }
     )
   }
 
   if (include_otp) {
-    cli::cli_inform("Fetching OTP punctuality buckets...")
-    otp_years <- years
-    if (is.null(otp_years)) {
-      otp_years <- seq.int(lubridate::year(as.Date(wef)), lubridate::year(as.Date(til)))
+    path_otp <- file.path(out_dir, glue::glue("OTP_RESULT_{start_chr}_{end_chr}.parquet"))
+    if (file.exists(path_otp)) {
+      cli::cli_inform("Skipping OTP punctuality buckets (exists).")
+    } else {
+      cli::cli_inform("Fetching OTP punctuality buckets...")
+      otp_years <- years
+      if (is.null(otp_years)) {
+        otp_years <- seq.int(lubridate::year(as.Date(wef)), lubridate::year(as.Date(til)))
+      }
+      otp <- pbwg_otp_punctuality(otp_years, airports)
+      arrow::write_parquet(otp, path_otp)
     }
-    otp <- pbwg_otp_punctuality(otp_years, airports)
-    arrow::write_parquet(
-      otp,
-      file.path(out_dir, glue::glue("OTP_RESULT_{start_chr}_{end_chr}.parquet"))
-    )
   }
 
   invisible(TRUE)
