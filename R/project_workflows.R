@@ -15,6 +15,7 @@
 #' @param include_market Logical; fetch NM area market segment counts.
 #' @param include_regional Logical; fetch regional roll-up (PBWG schema).
 #' @param include_airport Logical; fetch APDF airport traffic counts.
+#' @param include_raw_apdf Logical; also export raw APDF rows when available.
 #' @param include_otp Logical; fetch OTP punctuality buckets.
 #' @param out_dir Output directory; created if missing.
 #'
@@ -32,6 +33,7 @@ fetch_chn_eur_datasets <- function(
     include_market = TRUE,
     include_regional = TRUE,
     include_airport = TRUE,
+    include_raw_apdf = TRUE,
     include_otp = TRUE,
     out_dir = "data/eur") {
 
@@ -90,7 +92,7 @@ fetch_chn_eur_datasets <- function(
           glue::glue("{icao}_{start_chr}_{end_chr}_APDF_RAW.parquet")
         )
         need_summary <- !file.exists(out_path)
-        need_raw <- !file.exists(raw_path)
+        need_raw <- include_raw_apdf && !file.exists(raw_path)
 
         if (!need_summary && !need_raw) {
           cli::cli_inform("Skipping APDF for {icao} (exists).")

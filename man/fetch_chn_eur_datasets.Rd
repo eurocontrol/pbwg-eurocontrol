@@ -14,6 +14,7 @@ fetch_chn_eur_datasets(
   include_market = TRUE,
   include_regional = TRUE,
   include_airport = TRUE,
+  include_raw_apdf = TRUE,
   include_otp = TRUE,
   out_dir = "data/eur"
 )
@@ -36,6 +37,8 @@ overlapping \verb{[wef, til]}.}
 \item{include_regional}{Logical; fetch regional roll-up (PBWG schema).}
 
 \item{include_airport}{Logical; fetch APDF airport traffic counts.}
+
+\item{include_raw_apdf}{Logical; also export raw APDF rows when available.}
 
 \item{include_otp}{Logical; fetch OTP punctuality buckets.}
 
